@@ -112,12 +112,24 @@ generated API key.
 
 ### Discord
 
-Using a token for Dicsord is optional but will allow higher API rates.
+Using a token for Discord is optional but will allow higher API rates.
 
-- `DISCORD_BOT_TOKEN` (yml: `discord_bot_token`)
+- `DISCORD_BOT_TOKEN` (yml: `private.discord_bot_token`)
 
 Register an application in the [Discord developer console](https://discord.com/developers).
 To obtain a token, simply create a bot for your application.
+
+### DockerHub
+
+Using authentication for DockerHub is optional but can be used to allow
+higher API rates or access to private repos.
+
+- `DOCKERHUB_USER` (yml: `private.dockerhub_username`)
+- `DOCKERHUB_PAT` (yml: `private.dockerhub_pat`)
+
+`DOCKERHUB_PAT` is a Personal Access Token. Generate a token in your
+[account security settings](https://hub.docker.com/settings/security) with
+"Read-Only" or "Public Repo Read-Only", depending on your needs.
 
 ### Drone
 
@@ -166,6 +178,15 @@ token, though it's not required.
 These settings are used by shields.io for GitHub OAuth app authorization
 but will not be necessary for most self-hosted installations. See
 [production-hosting.md](./production-hosting.md).
+
+### Gitea
+
+- `GITEA_ORIGINS` (yml: `public.services.gitea.authorizedOrigins`)
+- `GITEA_TOKEN` (yml: `private.gitea_token`)
+
+A Gitea [Personal Access Token][gitea-pat] is required for accessing private content. If you need a Gitea token for your self-hosted Shields server then we recommend limiting the scopes to the minimal set necessary for the badges you are using.
+
+[gitea-pat]: https://docs.gitea.com/development/api-usage#generating-and-listing-api-tokens
 
 ### GitLab
 
@@ -231,7 +252,7 @@ installation access to private npm packages
 
 [npm token]: https://docs.npmjs.com/getting-started/working_with_tokens
 
-## Open Build Service
+### Open Build Service
 
 - `OBS_USER` (yml: `private.obs_user`)
 - `OBS_PASS` (yml: `private.obs_user`)
@@ -245,6 +266,40 @@ While OBS supports [API tokens](https://openbuildservice.org/help/manuals/obs-us
 they can only be scoped to execute specific actions on a POST request. This
 means however, that an actual account is required to read the build status
 of a package.
+
+### OpenCollective
+
+- `OPENCOLLECTIVE_TOKEN` (yml: `private.opencollective_token`)
+
+OpenCollective's GraphQL API only allows 10 reqs/minute for anonymous users.
+An [API token](https://graphql-docs-v2.opencollective.com/access)
+can be provided to access a higher rate limit of 100 reqs/minute.
+
+### Pepy
+
+- `PEPY_KEY` (yml: `private.pepy_key`)
+
+The Pepy API requires authentication. To obtain a key,
+Create an account, sign in and obtain generate a key on your
+[account page](https://www.pepy.tech/user).
+
+### PyPI
+
+- `PYPI_URL` (yml: `public.pypi.baseUri`)
+
+`PYPI_URL` can be used to optionally send all the PyPI requests to a Self-hosted Pypi registry,
+users can also override this by query parameter `pypiBaseUrl`.
+
+### Reddit
+
+Using a token for Reddit is optional but will allow higher API rates.
+
+- `REDDIT_CLIENT_ID` (yml: `private.reddit_client_id`)
+- `REDDIT_CLIENT_SECRET` (yml: `private.reddit_client_secret`)
+
+Register to use the API using [this form](https://support.reddithelp.com/hc/en-us/requests/new?ticket_form_id=14868593862164)
+and create an app in the [Reddit preferences page](https://www.reddit.com/prefs/apps)
+in order to obtain a client id and a client secret for making Reddit API calls.
 
 ### SymfonyInsight (formerly Sensiolabs)
 
@@ -286,8 +341,8 @@ access to your private nexus repositories.
 
 ### Twitch
 
-- `TWITCH_CLIENT_ID` (yml: `twitch_client_id`)
-- `TWITCH_CLIENT_SECRET` (yml: `twitch_client_secret`)
+- `TWITCH_CLIENT_ID` (yml: `private.twitch_client_id`)
+- `TWITCH_CLIENT_SECRET` (yml: `private.twitch_client_secret`)
 
 Register an application in the [Twitch developer console](https://dev.twitch.tv/console)
 in order to obtain a client id and a client secret for making Twitch API calls.
@@ -306,16 +361,6 @@ You can find your Weblate API key in your profile under
 
 [weblate authentication]: https://docs.weblate.org/en/latest/api.html#authentication-and-generic-parameters
 [weblate api key location]: https://hosted.weblate.org/accounts/profile/#api
-
-### Wheelmap
-
-- `WHEELMAP_TOKEN` (yml: `private.wheelmap_token`)
-
-The wheelmap API requires authentication. To obtain a token,
-Create an account, [sign in][wheelmap token] and use the _Authentication Token_
-displayed on your profile page.
-
-[wheelmap token]: http://classic.wheelmap.org/en/users/sign_in
 
 ### YouTube
 

@@ -4,13 +4,13 @@ This document describes how to host your own shields server either from source o
 
 ## Installing from Source
 
-You will need Node 18 or later, which you can install using a
+You will need Node 20 or later, which you can install using a
 [package manager][].
 
 On Ubuntu / Debian:
 
 ```sh
-curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -; sudo apt-get install -y nodejs
+curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -; sudo apt-get install -y nodejs
 ```
 
 ```sh
@@ -78,10 +78,7 @@ We publish images to:
 - DockerHub at https://registry.hub.docker.com/r/shieldsio/shields and
 - GitHub Container Registry at https://github.com/badges/shields/pkgs/container/shields
 
-The `next` tag is the latest build from `master`, or tagged snapshot releases are available:
-
-- https://registry.hub.docker.com/r/shieldsio/shields/tags
-- https://github.com/badges/shields/pkgs/container/shields/versions?filters%5Bversion_type%5D=tagged
+The `next` tag is the latest build from `master`. These are only available for linux/amd64
 
 ```sh
 # DockerHub
@@ -94,6 +91,13 @@ $ docker run shieldsio/shields:next
 $ docker pull ghcr.io/badges/shields:next
 $ docker pull ghcr.io/badges/shields:next
 ```
+
+Tagged snapshot releases are also available:
+
+- https://registry.hub.docker.com/r/shieldsio/shields/tags
+- https://github.com/badges/shields/pkgs/container/shields/versions?filters%5Bversion_type%5D=tagged
+
+We push both linux/amd64 and linux/arm64 snapshot images. We use the linux/amd64 image ourselves to host shields.io. We push a linux/arm64 image, but we don't consume it ourselves and it receives no testing beyond ensuring the docker image builds without error.
 
 ### Building Docker Image Locally
 

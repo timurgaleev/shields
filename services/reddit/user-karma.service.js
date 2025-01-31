@@ -1,7 +1,8 @@
 import Joi from 'joi'
 import { anyInteger } from '../validators.js'
 import { metric } from '../text-formatters.js'
-import { BaseJsonService } from '../index.js'
+import { pathParams } from '../index.js'
+import RedditBase from './reddit-base.js'
 
 const schema = Joi.object({
   data: Joi.object({
@@ -10,28 +11,30 @@ const schema = Joi.object({
   }).required(),
 }).required()
 
-export default class RedditUserKarma extends BaseJsonService {
-  static category = 'social'
-
+export default class RedditUserKarma extends RedditBase {
   static route = {
     base: 'reddit/user-karma',
     pattern: ':variant(link|comment|combined)/:user',
   }
 
-  static examples = [
-    {
-      title: 'Reddit User Karma',
-      namedParams: { variant: 'combined', user: 'example' },
-      staticPreview: {
-        label: 'combined karma',
-        message: 56,
-        color: 'brightgreen',
-        style: 'social',
+  static openApi = {
+    '/reddit/user-karma/{variant}/{user}': {
+      get: {
+        summary: 'Reddit User Karma',
+        parameters: pathParams(
+          {
+            name: 'variant',
+            example: 'combined',
+            schema: { type: 'string', enum: this.getEnum('variant') },
+          },
+          {
+            name: 'user',
+            example: 'example',
+          },
+        ),
       },
     },
-  ]
-
-  static _cacheLength = 7200
+  }
 
   static defaultBadgeData = {
     label: 'reddit karma',
@@ -46,6 +49,7 @@ export default class RedditUserKarma extends BaseJsonService {
     return {
       label,
       message: metric(karma),
+      style: 'social',
       color: karma > 0 ? 'brightgreen' : karma === 0 ? 'orange' : 'red',
       link: [`https://www.reddit.com/u/${user}`],
     }
@@ -54,7 +58,10 @@ export default class RedditUserKarma extends BaseJsonService {
   async fetch({ user }) {
     return this._requestJson({
       schema,
-      url: `https://www.reddit.com/u/${user}/about.json`,
+      // API requests with a bearer token should be made to https://oauth.reddit.com, NOT www.reddit.com.
+      url: this.authHelper.isConfigured
+        ? `https://oauth.reddit.com/u/${user}/about.json`
+        : `https://www.reddit.com/u/${user}/about.json`,
       httpErrors: {
         404: 'user not found',
       },

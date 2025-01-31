@@ -1,7 +1,6 @@
 import Joi from 'joi'
-import { BaseJsonService } from '../index.js'
-import { formatDate } from '../text-formatters.js'
-import { age as ageColor } from '../color-formatters.js'
+import { BaseJsonService, pathParams } from '../index.js'
+import { renderDateBadge } from '../date.js'
 
 const schema = Joi.object({
   commits: Joi.array()
@@ -21,26 +20,19 @@ export default class SourceforgeLastCommit extends BaseJsonService {
     pattern: ':project',
   }
 
-  static examples = [
-    {
-      title: 'SourceForge last commit',
-      namedParams: {
-        project: 'guitarix',
+  static openApi = {
+    '/sourceforge/last-commit/{project}': {
+      get: {
+        summary: 'SourceForge Last Commit',
+        parameters: pathParams({
+          name: 'project',
+          example: 'guitarix',
+        }),
       },
-      staticPreview: this.render({
-        commitDate: 1653556285,
-      }),
     },
-  ]
+  }
 
   static defaultBadgeData = { label: 'last commit' }
-
-  static render({ commitDate }) {
-    return {
-      message: formatDate(new Date(commitDate)),
-      color: ageColor(new Date(commitDate)),
-    }
-  }
 
   async fetch({ project }) {
     return this._requestJson({
@@ -54,8 +46,6 @@ export default class SourceforgeLastCommit extends BaseJsonService {
 
   async handle({ project }) {
     const body = await this.fetch({ project })
-    return this.constructor.render({
-      commitDate: body.commits[0].committed_date,
-    })
+    return renderDateBadge(body.commits[0].committed_date)
   }
 }
