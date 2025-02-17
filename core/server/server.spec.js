@@ -59,8 +59,17 @@ describe('The server', function () {
       expect(headers['cache-control']).to.equal('max-age=300, s-maxage=300')
     })
 
-    it('should serve badges with custom maxAge', async function () {
+    it('should serve static badges without logo with maxAge=432000', async function () {
       const { headers } = await got(`${baseUrl}badge/foo-bar-blue`)
+      expect(headers['cache-control']).to.equal(
+        'max-age=432000, s-maxage=432000',
+      )
+    })
+
+    it('should serve badges with with logo with maxAge=86400', async function () {
+      const { headers } = await got(
+        `${baseUrl}badge/foo-bar-blue?logo=javascript`,
+      )
       expect(headers['cache-control']).to.equal('max-age=86400, s-maxage=86400')
     })
 
@@ -70,6 +79,7 @@ describe('The server', function () {
       )
       expect(statusCode).to.equal(200)
       expect(headers['access-control-allow-origin']).to.equal('*')
+      expect(headers['cross-origin-resource-policy']).to.equal('cross-origin')
     })
 
     it('should redirect colorscheme PNG badges as configured', async function () {
@@ -124,8 +134,30 @@ describe('The server', function () {
       expect(statusCode).to.equal(200)
       expect(headers['content-type']).to.equal('application/json')
       expect(headers['access-control-allow-origin']).to.equal('*')
+      expect(headers['cross-origin-resource-policy']).to.equal('cross-origin')
       expect(headers['content-length']).to.equal('92')
       expect(() => JSON.parse(body)).not.to.throw()
+    })
+
+    describe('Content Security Policy', function () {
+      it('should disable javascript when serving SVG content (no extension)', async function () {
+        const { headers } = await got(`${baseUrl}:fruit-apple-green`)
+        expect(headers['content-security-policy']).to.equal(
+          "script-src 'none';",
+        )
+      })
+
+      it('should disable javascript when serving SVG content (with extension)', async function () {
+        const { headers } = await got(`${baseUrl}:fruit-apple-green.svg`)
+        expect(headers['content-security-policy']).to.equal(
+          "script-src 'none';",
+        )
+      })
+
+      it('should not send content security headers when serving JSON content', async function () {
+        const { headers } = await got(`${baseUrl}:fruit-apple-green.json`)
+        expect(headers).not.to.have.property('content-security-policy')
+      })
     })
 
     it('should preserve label case', async function () {
@@ -483,7 +515,7 @@ describe('The server', function () {
           influx_password: 'influx-password',
         },
       })
-      clock = sinon.useFakeTimers()
+      clock = sinon.useFakeTimers({ toFake: ['setInterval'] })
       baseUrl = server.baseUrl
       await server.start()
     })

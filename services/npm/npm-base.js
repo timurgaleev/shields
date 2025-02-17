@@ -21,7 +21,7 @@ const packageDataSchema = Joi.object({
   maintainers: Joi.array()
     // We don't need the keys here, just the length.
     .items(Joi.object({}))
-    .required(),
+    .default([]),
   types: Joi.string(),
   // `typings` is an alias for `types` and often used
   // https://www.typescriptlang.org/docs/handbook/declaration-files/publishing.html#including-declarations-in-your-npm-package
@@ -33,6 +33,9 @@ const packageDataSchema = Joi.object({
 export const queryParamSchema = Joi.object({
   registry_uri: optionalUrl,
 }).required()
+
+export const packageNameDescription =
+  'This may be the name of an unscoped package like `package-name` or a [scoped package](https://docs.npmjs.com/about-scopes) like `@author/package-name`'
 
 // Abstract class for NPM badges which display data about the latest version
 // of a package.
@@ -78,8 +81,11 @@ export default class NpmBase extends BaseJsonService {
   }
 
   async _requestJson(data) {
-    return super._requestJson(
-      this.authHelper.withBearerAuthHeader({
+    let payload
+    if (data?.options?.headers?.Accept) {
+      payload = data
+    } else {
+      payload = {
         ...data,
         options: {
           headers: {
@@ -88,8 +94,9 @@ export default class NpmBase extends BaseJsonService {
             Accept: '*/*',
           },
         },
-      }),
-    )
+      }
+    }
+    return super._requestJson(this.authHelper.withBearerAuthHeader(payload))
   }
 
   async fetchPackageData({ registryUrl, scope, packageName, tag }) {
@@ -139,5 +146,38 @@ export default class NpmBase extends BaseJsonService {
     }
 
     return this.constructor._validate(packageData, packageDataSchema)
+  }
+
+  async fetch({
+    registryUrl,
+    scope,
+    packageName,
+    schema,
+    abbreviated = false,
+  }) {
+    registryUrl = registryUrl || this.constructor.defaultRegistryUrl
+    let url
+
+    if (scope === undefined) {
+      url = `${registryUrl}/${packageName}`
+    } else {
+      const scoped = this.constructor.encodeScopedPackage({
+        scope,
+        packageName,
+      })
+      url = `${registryUrl}/${scoped}`
+    }
+
+    // https://github.com/npm/registry/blob/main/docs/responses/package-metadata.md
+    const options = abbreviated
+      ? { headers: { Accept: 'application/vnd.npm.install-v1+json' } }
+      : {}
+
+    return this._requestJson({
+      url,
+      schema,
+      options,
+      httpErrors: { 404: 'package not found' },
+    })
   }
 }

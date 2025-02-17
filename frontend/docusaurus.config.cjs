@@ -1,5 +1,6 @@
 const lightCodeTheme = require('prism-react-renderer').themes.github
 const darkCodeTheme = require('prism-react-renderer').themes.dracula
+const stripCodeBlockLinks = require('./src/plugins/strip-code-block-links')
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -24,6 +25,14 @@ const config = {
     ],
   ],
 
+  markdown: {
+    mdx1Compat: {
+      comments: true,
+      admonitions: true,
+      headingIds: true,
+    },
+  },
+
   presets: [
     [
       'docusaurus-preset-openapi',
@@ -36,6 +45,8 @@ const config = {
         blog: {
           showReadingTime: true,
           editUrl: 'https://github.com/badges/shields/tree/master/frontend',
+          onInlineAuthors: 'ignore',
+          onUntruncatedBlogPosts: 'ignore',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
@@ -43,6 +54,7 @@ const config = {
         api: {
           path: 'categories',
           routeBasePath: 'badges',
+          rehypePlugins: [stripCodeBlockLinks],
         },
       }),
     ],
@@ -65,6 +77,7 @@ const config = {
             label: 'Documentation',
             position: 'left',
           },
+          { to: '/donate', label: 'Donate', position: 'left' },
           { to: '/community', label: 'Community', position: 'left' },
           { to: '/blog', label: 'Blog', position: 'left' },
           {
@@ -93,10 +106,6 @@ const config = {
                 href: 'https://discord.gg/HjJCwm5',
               },
               {
-                label: 'Twitter',
-                href: 'https://twitter.com/shields_io',
-              },
-              {
                 label: 'Awesome Badges',
                 href: 'https://github.com/badges/awesome-badges',
               },
@@ -106,12 +115,25 @@ const config = {
             title: 'Stats',
             items: [
               {
-                label: 'Service Status',
-                href: 'https://stats.uptimerobot.com/PjXogHB5p',
+                label: 'Service Status (Upptime)',
+                href: 'https://badges.github.io/uptime-monitoring/',
+              },
+              {
+                label: 'Service Status (NodePing)',
+                href: 'https://nodeping.com/reports/status/YBISBQB254',
               },
               {
                 label: 'Metrics dashboard',
                 href: 'https://metrics.shields.io/',
+              },
+            ],
+          },
+          {
+            title: 'Policy',
+            items: [
+              {
+                label: 'Privacy Policy',
+                href: '/privacy',
               },
             ],
           },

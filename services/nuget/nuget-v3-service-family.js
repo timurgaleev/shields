@@ -1,8 +1,8 @@
 import Joi from 'joi'
 import RouteBuilder from '../route-builder.js'
 import { BaseJsonService, NotFound } from '../index.js'
+import { renderVersionBadge } from '../version.js'
 import {
-  renderVersionBadge,
   renderDownloadBadge,
   searchServiceUrl,
   stripBuildMetadata,
@@ -121,14 +121,10 @@ function createServiceFamily({
       .push('(.+?)', 'packageName')
       .toObject()
 
-    static examples = []
+    static openApi = {}
 
     static defaultBadgeData = {
       label: defaultLabel,
-    }
-
-    static render(props) {
-      return renderVersionBadge(props)
     }
 
     /*
@@ -158,7 +154,7 @@ function createServiceFamily({
       })
       const json = await fetch(this, { baseUrl, packageName })
       const version = this.transform({ json, includePrereleases })
-      return this.constructor.render({ version, feed })
+      return renderVersionBadge({ version, defaultLabel: feed })
     }
   }
 
@@ -170,7 +166,7 @@ function createServiceFamily({
       .push('(.+?)', 'packageName')
       .toObject()
 
-    static examples = []
+    static openApi = {}
 
     static render(props) {
       return renderDownloadBadge(props)
