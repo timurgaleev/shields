@@ -1,7 +1,8 @@
 import Joi from 'joi'
 import { optionalNonNegativeInteger } from '../validators.js'
 import { metric } from '../text-formatters.js'
-import { BaseJsonService, NotFound } from '../index.js'
+import { NotFound, pathParams } from '../index.js'
+import RedditBase from './reddit-base.js'
 
 const schema = Joi.object({
   data: Joi.object({
@@ -9,28 +10,23 @@ const schema = Joi.object({
   }).required(),
 }).required()
 
-export default class RedditSubredditSubscribers extends BaseJsonService {
-  static category = 'social'
-
+export default class RedditSubredditSubscribers extends RedditBase {
   static route = {
     base: 'reddit/subreddit-subscribers',
     pattern: ':subreddit',
   }
 
-  static examples = [
-    {
-      title: 'Subreddit subscribers',
-      namedParams: { subreddit: 'drums' },
-      staticPreview: {
-        label: 'follow r/drums',
-        message: '77k',
-        color: 'red',
-        style: 'social',
+  static openApi = {
+    '/reddit/subreddit-subscribers/{subreddit}': {
+      get: {
+        summary: 'Subreddit subscribers',
+        parameters: pathParams({
+          name: 'subreddit',
+          example: 'drums',
+        }),
       },
     },
-  ]
-
-  static _cacheLength = 7200
+  }
 
   static defaultBadgeData = {
     label: 'reddit',
@@ -41,6 +37,7 @@ export default class RedditSubredditSubscribers extends BaseJsonService {
     return {
       label: `follow r/${subreddit}`,
       message: metric(subscribers),
+      style: 'social',
       color: 'red',
       link: [`https://www.reddit.com/r/${subreddit}`],
     }
@@ -49,7 +46,10 @@ export default class RedditSubredditSubscribers extends BaseJsonService {
   async fetch({ subreddit }) {
     return this._requestJson({
       schema,
-      url: `https://www.reddit.com/r/${subreddit}/about.json`,
+      // API requests with a bearer token should be made to https://oauth.reddit.com, NOT www.reddit.com.
+      url: this.authHelper.isConfigured
+        ? `https://oauth.reddit.com/r/${subreddit}/about.json`
+        : `https://www.reddit.com/r/${subreddit}/about.json`,
       httpErrors: {
         404: 'subreddit not found',
         403: 'subreddit is private',

@@ -1,12 +1,13 @@
 import gql from 'graphql-tag'
 import Joi from 'joi'
 import { matcher } from 'matcher'
-import { addv } from '../text-formatters.js'
-import { version as versionColor } from '../color-formatters.js'
-import { latest } from '../version.js'
-import { NotFound, redirector } from '../index.js'
+import { latest, renderVersionBadge } from '../version.js'
+import { NotFound, redirector, pathParam } from '../index.js'
 import { GithubAuthV4Service } from './github-auth-service.js'
-import { filterDocs, queryParamSchema } from './github-common-release.js'
+import {
+  queryParamSchema,
+  openApiQueryParams,
+} from './github-common-release.js'
 import { documentation, transformErrors } from './github-helpers.js'
 
 const schema = Joi.object({
@@ -34,54 +35,22 @@ class GithubTag extends GithubAuthV4Service {
     queryParamSchema,
   }
 
-  static examples = [
-    {
-      title: 'GitHub tag (latest by date)',
-      namedParams: { user: 'expressjs', repo: 'express' },
-      staticPreview: this.render({
-        version: 'v5.0.0-alpha.7',
-        sort: 'date',
-      }),
-      documentation,
+  static openApi = {
+    '/github/v/tag/{user}/{repo}': {
+      get: {
+        summary: 'GitHub Tag',
+        description: documentation,
+        parameters: [
+          pathParam({ name: 'user', example: 'expressjs' }),
+          pathParam({ name: 'repo', example: 'express' }),
+          ...openApiQueryParams,
+        ],
+      },
     },
-    {
-      title: 'GitHub tag (latest SemVer)',
-      namedParams: { user: 'expressjs', repo: 'express' },
-      queryParams: { sort: 'semver' },
-      staticPreview: this.render({ version: 'v4.16.4', sort: 'semver' }),
-      documentation,
-    },
-    {
-      title: 'GitHub tag (latest SemVer pre-release)',
-      namedParams: { user: 'expressjs', repo: 'express' },
-      queryParams: { sort: 'semver', include_prereleases: null },
-      staticPreview: this.render({
-        version: 'v5.0.0-alpha.7',
-        sort: 'semver',
-      }),
-      documentation,
-    },
-    {
-      title: 'GitHub tag (with filter)',
-      namedParams: { user: 'badges', repo: 'shields' },
-      queryParams: { filter: '!server-*' },
-      staticPreview: this.render({
-        version: 'v3.3.1',
-        sort: 'date',
-      }),
-      documentation: documentation + filterDocs,
-    },
-  ]
+  }
 
   static defaultBadgeData = {
     label: 'tag',
-  }
-
-  static render({ version, sort }) {
-    return {
-      message: addv(version),
-      color: sort === 'semver' ? versionColor(version) : 'blue',
-    }
   }
 
   static getLimit({ sort, filter }) {
@@ -145,13 +114,12 @@ class GithubTag extends GithubAuthV4Service {
       const prettyMessage = filter ? 'no matching tags found' : 'no tags found'
       throw new NotFound({ prettyMessage })
     }
-    return this.constructor.render({
+    return renderVersionBadge({
       version: this.constructor.getLatestTag({
         tags,
         sort,
         includePrereleases,
       }),
-      sort,
     })
   }
 }

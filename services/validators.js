@@ -71,6 +71,13 @@ export const optionalDottedVersionNClausesWithOptionalSuffix =
 export const optionalUrl = Joi.string().uri({ scheme: ['http', 'https'] })
 
 /**
+ * Joi validator that checks if a value is a URL and the value must be present.
+ *
+ * @type {Joi}
+ */
+export const url = optionalUrl.required()
+
+/**
  * Joi validator for a file size we are going to pass to bytes.parse
  * see https://github.com/visionmedia/bytes.js#bytesparsestringnumber-value-numbernull
  *
@@ -79,3 +86,10 @@ export const optionalUrl = Joi.string().uri({ scheme: ['http', 'https'] })
 export const fileSize = Joi.string()
   .regex(/^[0-9]+(b|kb|mb|gb|tb)$/i)
   .required()
+
+/**
+ * Joi validator that checks if a value is a relative-only URI
+ *
+ * @type {Joi}
+ */
+export const relativeUri = Joi.string().uri({ relativeOnly: true })

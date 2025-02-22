@@ -1,5 +1,6 @@
 import Joi from 'joi'
 import parseLinkHeader from 'parse-link-header'
+import { pathParams } from '../index.js'
 import { renderContributorBadge } from '../contributor-count.js'
 import { GithubAuthV3Service } from './github-auth-service.js'
 import { documentation, httpErrorsFor } from './github-helpers.js'
@@ -11,21 +12,36 @@ export default class GithubContributors extends GithubAuthV3Service {
   static category = 'activity'
   static route = {
     base: 'github',
-    pattern: ':variant(contributors|contributors-anon)/:user/:repo',
+    // note we call this param 'metric' instead of 'variant' because of
+    // https://github.com/badges/shields/issues/10323
+    pattern: ':metric(contributors|contributors-anon)/:user/:repo',
   }
 
-  static examples = [
-    {
-      title: 'GitHub contributors',
-      namedParams: {
-        variant: 'contributors',
-        user: 'cdnjs',
-        repo: 'cdnjs',
+  static openApi = {
+    '/github/{metric}/{user}/{repo}': {
+      get: {
+        summary: 'GitHub contributors',
+        description: documentation,
+        parameters: pathParams(
+          {
+            name: 'metric',
+            example: 'contributors',
+            schema: { type: 'string', enum: this.getEnum('metric') },
+            description:
+              '`contributors-anon` includes anonymous commits, whereas `contributors` excludes them.',
+          },
+          {
+            name: 'user',
+            example: 'cdnjs',
+          },
+          {
+            name: 'repo',
+            example: 'cdnjs',
+          },
+        ),
       },
-      staticPreview: this.render({ contributorCount: 397 }),
-      documentation,
     },
-  ]
+  }
 
   static defaultBadgeData = { label: 'contributors' }
 
@@ -33,8 +49,8 @@ export default class GithubContributors extends GithubAuthV3Service {
     return renderContributorBadge({ contributorCount })
   }
 
-  async handle({ variant, user, repo }) {
-    const isAnon = variant === 'contributors-anon'
+  async handle({ metric, user, repo }) {
+    const isAnon = metric === 'contributors-anon'
 
     const { res, buffer } = await this._request({
       url: `/repos/${user}/${repo}/contributors`,
